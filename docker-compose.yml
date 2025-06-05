@@ -1,0 +1,84 @@
+version: "3.8"
+services:
+  pg-primary:
+    image: postgres:16
+    container_name: pg-primary
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./primary/init.sh:/docker-entrypoint-initdb.d/init.sh
+      - pg_primary_data:/var/lib/postgresql/data
+    networks:
+      - pgnet
+
+  pg_replica_b:
+    build:
+      context: ./pg_replica_b
+    container_name: pg_replica_b
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      REPL_UPSTREAM_HOST: pg-primary
+      REPL_UPSTREAM_PASSWORD: replicator
+      PGPASSWORD: replicator
+      NODE_NAME: pg_replica_b
+    ports:
+      - "5433:5432"
+    depends_on:
+      - pg-primary
+    volumes:
+      - pg_replica_b_data:/var/lib/postgresql/data
+    networks:
+      - pgnet
+
+  pg_replica_c:
+    build:
+      context: ./pg_replica_c
+    container_name: pg_replica_c
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      REPL_UPSTREAM_HOST: pg_replica_b
+      REPL_UPSTREAM_PASSWORD: replicator
+      PGPASSWORD: replicator
+      NODE_NAME: pg_replica_c
+    ports:
+      - "5434:5432"
+    depends_on:
+      - pg_replica_b
+    volumes:
+      - pg_replica_c_data:/var/lib/postgresql/data
+    networks:
+      - pgnet
+
+  pgpool:
+    image: bitnami/pgpool:latest
+    container_name: pgpool
+    environment:
+      PGPOOL_BACKEND_NODES: "0:pg-primary:5432,1:pg_replica_b:5432,2:pg_replica_c:5432"
+      PGPOOL_ENABLE_LOAD_BALANCING: "yes"
+      PGPOOL_SR_CHECK_USER: "postgres"
+      PGPOOL_SR_CHECK_PASSWORD: "postgres"
+      PGPOOL_POSTGRES_USERNAME: "postgres"
+      PGPOOL_POSTGRES_PASSWORD: "postgres"
+      PGPOOL_ADMIN_USERNAME: "admin"
+      PGPOOL_ADMIN_PASSWORD: "adminpassword"
+    ports:
+      - "5435:5432"
+    depends_on:
+      - pg-primary
+      - pg_replica_b
+      - pg_replica_c
+    networks:
+      - pgnet
+
+volumes:
+  pg_primary_data:
+  pg_replica_b_data:
+  pg_replica_c_data:
+
+networks:
+  pgnet:
