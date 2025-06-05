@@ -25,6 +25,11 @@ if [ ! -s "$PGDATA/PG_VERSION" ]; then
 
   echo "primary_slot_name = '$NODE_NAME'" >> "$PGDATA/postgresql.conf"
   echo "hot_standby = on" >> "$PGDATA/postgresql.conf"
+
+  
+  echo "Перезаписываем primary_conninfo с application_name"
+  echo "primary_conninfo = 'host=$REPL_UPSTREAM_HOST port=5432 user=replicator password=replicator application_name=$NODE_NAME'" >> "$PGDATA/postgresql.auto.conf"
+
 fi
 
 exec postgres -D "$PGDATA"
