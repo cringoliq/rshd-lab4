@@ -1,8 +1,10 @@
 FROM postgres:16
 
-RUN apt-get update && apt-get install -y gosu && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gosu && \
+    rm -rf /var/lib/apt/lists/*
 
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+COPY entrypoint.sh /opt/init/replica.sh
+RUN chmod +x /opt/init/replica.sh
 
-ENTRYPOINT ["/entrypoint.sh"]
+CMD ["sleep", "infinity"]
