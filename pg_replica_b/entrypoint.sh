@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
+set -e
 
 PGDATA="/var/lib/postgresql/data"
 REPL_USER="replicator"
