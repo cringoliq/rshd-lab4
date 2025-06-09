@@ -34,6 +34,10 @@ services:
       - pg-primary
     volumes:
       - pg_replica_b_data:/var/lib/postgresql/data
+      - ./pg_replica_b/entrypoint.sh:/entrypoint.sh
+
+    stdin_open: true
+    tty: true
     networks:
       - pgnet
 
@@ -54,6 +58,10 @@ services:
       - pg_replica_b
     volumes:
       - pg_replica_c_data:/var/lib/postgresql/data
+      - ./pg_replica_b/entrypoint.sh:/entrypoint.sh
+
+    stdin_open: true
+    tty: true
     networks:
       - pgnet
 
